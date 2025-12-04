@@ -1,0 +1,808 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Firma Legal Del Bajío - Precisión Estratégica y Solidez Jurídica</title>
+    <!-- Carga de Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Carga de Iconos (Lucide Icons) -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Estilo de Fuente Inter para profesionalismo -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
+    <!-- Carga de Three.js para el impacto visual 3D -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    
+    <style>
+        /* Definición de colores institucionales basados en el PDF */
+        :root {
+            --color-primary: #08285C; /* Azul Marino Intenso / Carbón (Confianza, Autoridad) */
+            --color-secondary: #F5BD02; /* Oro / Bronce (Excelencia, Prestigio) */
+            --color-text-light: #f3f4f6;
+            --color-text-dark: #1f2937;
+        }
+
+        /* Configuración de Tailwind para usar los colores personalizados */
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'primary': 'var(--color-primary)',
+                        'secondary': 'var(--color-secondary)',
+                        'gold-light': '#FFD700', /* Oro un poco más claro para detalles */
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+
+        /* Estilos CSS personalizados para el diseño de alto impacto */
+        .header-bg {
+            background-color: var(--color-primary);
+        }
+
+        /* Estilo para el efecto de sombra en el texto clave */
+        .text-shadow-gold {
+            text-shadow: 2px 2px 4px rgba(245, 189, 2, 0.4);
+        }
+
+        /* Estilo para el fondo del hero section, sutil textura de mármol/papel legal oscuro */
+        .hero-section {
+            background-color: var(--color-primary);
+            background-image: radial-gradient(at 0% 100%, rgba(255, 255, 255, 0.05), transparent), radial-gradient(at 100% 0%, rgba(255, 255, 255, 0.05), transparent);
+            min-height: 85vh; /* Altura de la sección principal */
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Contenedor del Canvas 3D */
+        #three-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 10;
+            opacity: 0.15; /* Sutilidad para no distraer del contenido */
+        }
+
+        .hero-content {
+            z-index: 20;
+            position: relative;
+        }
+
+        /* Estilo para las tarjetas de área legal */
+        .service-card {
+            transition: all 0.3s ease;
+            transform: scale(1);
+            border: 1px solid rgba(8, 40, 92, 0.1);
+            position: relative; /* Necesario para el overlay del fondo */
+            overflow: hidden;
+            background-color: #ffffff;
+        }
+        
+        /* ELIMINAMOS EL PSEUDOELEMENTO ::before QUE CREABA EL FONDO DE AGUA */
+        .service-card::before, .service-card-cta::before {
+            content: none;
+        }
+
+        .service-card:hover {
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: 0 10px 20px rgba(8, 40, 92, 0.2);
+            border-color: var(--color-secondary);
+        }
+        
+        /* Estilo para las imágenes dentro de las tarjetas (ahora colocadas con etiqueta <img>) */
+        .card-image-visible {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            /* CORRECCIÓN: Usamos 'contain' y aumentamos la opacidad */
+            object-fit: contain; /* Ajusta la imagen para que quepa completamente */
+            opacity: 0.3; /* Opacidad aumentada para visibilidad */
+            z-index: 1;
+        }
+
+        /* Aseguramos que el contenido de la tarjeta esté sobre la imagen */
+        .card-content {
+            position: relative;
+            z-index: 2;
+        }
+
+
+        /* Estilo para el botón de contacto que destaca */
+        .btn-primary-gold {
+            background-color: var(--color-secondary);
+            color: var(--color-primary);
+            font-weight: 700;
+            transition: background-color 0.3s ease, transform 0.1s ease;
+        }
+
+        .btn-primary-gold:hover {
+            background-color: #FFD700; /* Oro más brillante en hover */
+            transform: translateY(-1px);
+        }
+
+        /* Placeholder de Imagen de Abogado - Estilo Clean (MODIFICADO) */
+        .attorney-img-placeholder {
+            width: 100%;
+            padding-top: 100%; /* Para hacerlo cuadrado */
+            position: relative;
+            /* Eliminamos el fondo gris claro para que la imagen sea el foco */
+            background-color: transparent; 
+            border-radius: 9999px; /* Circular */
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* ELIMINAMOS EL ICONO DEL MALETÍN */
+        .attorney-img-placeholder::after {
+            content: none;
+        }
+
+        /* Estilo para las imágenes dentro de los placeholders */
+        .attorney-img-placeholder img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover; /* Asegura que la imagen cubra el círculo */
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        /* Estilo para la lista de pilares (valores) */
+        .pillar-item {
+            display: flex;
+            align-items: flex-start;
+            padding: 1rem;
+            border-left: 4px solid var(--color-secondary);
+            background-color: #f9fafb;
+            border-radius: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+    </style>
+</head>
+<body class="font-sans text-gray-800 bg-white">
+
+    <!-- Barra de Navegación (Fixed) -->
+    <header id="navbar" class="fixed top-0 left-0 right-0 header-bg shadow-lg z-50 transition-all duration-300">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+            <!-- Logo/Marca: USANDO LOGO.PNG LOCAL -->
+            <a href="#inicio" class="text-2xl font-extrabold flex items-center space-x-2">
+                <!-- Reemplazamos el ícono Lucide por la imagen del logo -->
+                <img src="logo.png" alt="Logo de Firma Legal Del Bajío" class="w-8 h-8" onerror="this.style.display='none'">
+                <span class="text-white">FIRMA LEGAL DEL BAJÍO</span>
+            </a>
+
+            <!-- Navegación Desktop -->
+            <nav class="hidden lg:flex space-x-8">
+                <a href="#areas" class="text-white hover:text-secondary transition-colors duration-200 font-medium">Áreas Legales</a>
+                <a href="#filosofia" class="text-white hover:text-secondary transition-colors duration-200 font-medium">Filosofía</a>
+                <a href="#equipo" class="text-white hover:text-secondary transition-colors duration-200 font-medium">Nuestro Equipo</a>
+                <a href="#contacto" class="text-white hover:text-secondary transition-colors duration-200 font-medium">Contacto</a>
+            </nav>
+
+            <!-- Botón de Menú Móvil -->
+            <button id="mobile-menu-button" class="lg:hidden text-white focus:outline-none" aria-label="Abrir menú">
+                <i data-lucide="menu" class="w-6 h-6"></i>
+            </button>
+        </div>
+
+        <!-- Menú Móvil (Oculto por defecto) -->
+        <div id="mobile-menu" class="lg:hidden hidden bg-primary/95">
+            <nav class="flex flex-col space-y-2 px-4 py-3">
+                <a href="#areas" class="text-white hover:text-secondary py-2 border-b border-primary/50 transition-colors duration-200" onclick="closeMenu()">Áreas Legales</a>
+                <a href="#filosofia" class="text-white hover:text-secondary py-2 border-b border-primary/50 transition-colors duration-200" onclick="closeMenu()">Filosofía</a>
+                <a href="#equipo" class="text-white hover:text-secondary py-2 border-b border-primary/50 transition-colors duration-200" onclick="closeMenu()">Nuestro Equipo</a>
+                <a href="#contacto" class="text-white hover:text-secondary py-2 transition-colors duration-200" onclick="closeMenu()">Contacto</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="pt-16">
+        
+        <!-- SECCIÓN 1: HERO - IMPACTO VISUAL (LA FORTALEZA) -->
+        <section id="inicio" class="hero-section flex items-center justify-center text-white">
+            <!-- Canvas 3D para el efecto visual (Iustitia) -->
+            <canvas id="three-canvas"></canvas>
+
+            <div class="hero-content text-center px-4 py-20 max-w-4xl">
+                <h1 class="text-5xl sm:text-7xl font-extrabold leading-tight mb-4 text-shadow-gold">
+                    SU <span class="text-secondary">FORTALEZA JURÍDICA</span> EN EL BAJÍO.
+                </h1>
+                <p class="text-xl sm:text-2xl font-light mb-8 max-w-3xl mx-auto">
+                    Transformamos el letargo burocrático en acción legal decisiva. Expertos de renombre fusionados para ofrecer Calidad Innegociable.
+                </p>
+                <!-- Botón de Llamada a la Acción Principal -->
+                <a href="#contacto" class="btn-primary-gold inline-flex items-center space-x-2 px-8 py-4 rounded-lg text-lg hover:shadow-xl transition-all duration-300">
+                    <i data-lucide="shield-check" class="w-6 h-6"></i>
+                    <span>Comience su Asesoría</span>
+                </a>
+            </div>
+        </section>
+
+        <!-- SECCIÓN 2: ÁREAS LEGALES (EL MAPEO DE SOLUCIONES) -->
+        <section id="areas" class="py-16 md:py-24 bg-gray-50">
+            <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+                <h2 class="text-4xl font-extrabold text-center mb-4 text-primary">Nuestras Áreas de Precisión</h2>
+                <p class="text-xl text-center text-gray-600 mb-12 max-w-3xl mx-auto">
+                    Somos una Firma de Especialistas. Acceda a la experiencia concentrada en cada rama del derecho para obtener la mejor solución posible.
+                </p>
+                
+                <!-- Grid de Servicios -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    
+                    <!-- Tarjeta 1: Oralidad Familiar -->
+                    <div class="service-card p-6 rounded-xl shadow-lg">
+                        <!-- IMAGEN VISIBLE AÑADIDA -->
+                        <img src="oralidad familiar.png" alt="Icono Oralidad Familiar" class="card-image-visible">
+                        <div class="card-content">
+                            <div class="flex items-center mb-4">
+                                <i data-lucide="users-round" class="w-8 h-8 text-secondary mr-3"></i>
+                                <h3 class="text-2xl font-semibold text-primary">Oralidad Familiar</h3>
+                            </div>
+                            <p class="text-gray-600 mb-4">Priorizamos el Interés Superior del Menor y la equidad con velocidad de oralidad.</p>
+                            <ul class="space-y-2 text-sm text-gray-700 list-disc pl-5">
+                                <li>Régimen de Convivencias (Restablecimiento o Reajuste)</li>
+                                <li>Compensación por Matrimonio (Hasta 50% de bienes)</li>
+                                <li>Adopción por Pareja (Dirigida)</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <!-- Tarjeta 2: Civil -->
+                    <div class="service-card p-6 rounded-xl shadow-lg">
+                        <!-- IMAGEN VISIBLE AÑADIDA -->
+                        <img src="derecho civil.png" alt="Icono Derecho Civil" class="card-image-visible">
+                        <div class="card-content">
+                            <div class="flex items-center mb-4">
+                                <i data-lucide="building-2" class="w-8 h-8 text-secondary mr-3"></i>
+                                <h3 class="text-2xl font-semibold text-primary">Derecho Civil</h3>
+                            </div>
+                            <p class="text-gray-600 mb-4">Solidez del derecho clásico para proteger y regular su patrimonio.</p>
+                            <ul class="space-y-2 text-sm text-gray-700 list-disc pl-5">
+                                <li>Recuperación de Propiedades (Juicios Reivindicatorios)</li>
+                                <li>Arreglo de Escrituras (Juicios Sucesorios - Vía Notarial)</li>
+                                <li>Formalización de Compraventa (Escritura Definitiva)</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Tarjeta 3: Mercantil -->
+                    <div class="service-card p-6 rounded-xl shadow-lg">
+                        <!-- IMAGEN VISIBLE AÑADIDA -->
+                        <img src="mercantil.png" alt="Icono Mercantil" class="card-image-visible">
+                        <div class="card-content">
+                            <div class="flex items-center mb-4">
+                                <i data-lucide="banknote" class="w-8 h-8 text-secondary mr-3"></i>
+                                <h3 class="text-2xl font-semibold text-primary">Mercantil</h3>
+                            </div>
+                            <p class="text-gray-600 mb-4">Acción legal decisiva para la seguridad financiera de su negocio y persona.</p>
+                            <ul class="space-y-2 text-sm text-gray-700 list-disc pl-5">
+                                <li>Cobranza de Títulos de Crédito (Embargo Precautorio)</li>
+                                <li>Nulidad de Cargos No Reconocidos (Tarjetas Débito/Crédito)</li>
+                                <li>Defensa contra prácticas bancarias abusivas.</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <!-- Tarjeta 4: Laboral -->
+                    <div class="service-card p-6 rounded-xl shadow-lg">
+                        <!-- IMAGEN VISIBLE AÑADIDA -->
+                        <img src="laboral.png" alt="Icono Laboral" class="card-image-visible">
+                        <div class="card-content">
+                            <div class="flex items-center mb-4">
+                                <i data-lucide="briefcase" class="w-8 h-8 text-secondary mr-3"></i>
+                                <h3 class="text-2xl font-semibold text-primary">Laboral</h3>
+                            </div>
+                            <p class="text-gray-600 mb-4">Representación balanceada: protección al trabajador y asesoría patronal.</p>
+                            <ul class="space-y-2 text-sm text-gray-700 list-disc pl-5">
+                                <li>Despido Injustificado (Indemnización y Salarios Caídos)</li>
+                                <li>Rescisiones Laborales (Asesoría a Patrones, Art. 47 LFT)</li>
+                                <li>Negociación en Tribunales Laborales.</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Tarjeta 5: Penal -->
+                    <div class="service-card p-6 rounded-xl shadow-lg">
+                        <!-- IMAGEN VISIBLE AÑADIDA -->
+                        <img src="penal.png" alt="Icono Penal" class="card-image-visible">
+                        <div class="card-content">
+                            <div class="flex items-center mb-4">
+                                <i data-lucide="gavel" class="w-8 h-8 text-secondary mr-3"></i>
+                                <h3 class="text-2xl font-semibold text-primary">Penal (Alto Impacto)</h3>
+                            </div>
+                            <p class="text-gray-600 mb-4">Defensa y representación estratégica en los desafíos más complejos.</p>
+                            <ul class="space-y-2 text-sm text-gray-700 list-disc pl-5">
+                                <li>Asesoría y defensa en delitos de alto impacto.</li>
+                                <li>Representación en litigios penales.</li>
+                                <li>Estrategia para lograr la menor consecuencia para el usuario.</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <!-- Tarjeta de Llamada a la Acción (CTA Card) -->
+                    <div class="service-card bg-primary p-6 rounded-xl shadow-xl flex flex-col justify-center items-center text-center">
+                        <!-- IMAGEN VISIBLE AÑADIDA -->
+                        <img src="logo.png" alt="Logo Firma Legal" class="card-image-visible opacity-5">
+                        <div class="card-content">
+                            <i data-lucide="message-square-text" class="w-12 h-12 text-secondary mb-4"></i>
+                            <!-- Título con alto contraste -->
+                            <h3 class="text-2xl font-bold text-secondary mb-3">Su Solución Comienza Aquí</h3>
+                            <!-- Párrafo en Blanco para alto contraste -->
+                            <p class="text-white mb-6">Contáctenos para una evaluación confidencial y estratégica de su situación.</p>
+                            <a href="#contacto" class="bg-secondary text-primary font-bold px-6 py-3 rounded-lg hover:bg-gold-light transition-colors duration-300">
+                                Agenda una Cita Ahora
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- SECCIÓN 3: FILOSOFÍA Y VALORES (EL PACTO DE LEÓN) -->
+        <section id="filosofia" class="py-16 md:py-24 bg-white">
+            <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="lg:flex lg:space-x-12">
+                    
+                    <!-- Columna Izquierda: Historia y Visión -->
+                    <div class="lg:w-1/2 mb-12 lg:mb-0">
+                        <span class="text-sm font-semibold uppercase text-secondary tracking-widest">NUESTRA ESENCIA</span>
+                        <h2 class="text-4xl font-extrabold text-primary mb-6">El Pacto de Justicia: <span class="block mt-1 text-gold-light">Nacidos de la Frustración. Impulsados por la Acción.</span></h2>
+                        
+                        <p class="text-lg text-gray-600 mb-6">
+                            FIRMA LEGAL DEL BAJÍO no es un bufete, es un **Pacto de Justicia**. Fundada en León, Guanajuato, en 2022, nuestra firma surge de la necesidad de transformar la lentitud burocrática en una acción legal decisiva. Fusionamos la experiencia de expertos de renombre (Civil, Familiar, Laboral) para ser el Referente Legal Inquebrantable del Bajío.
+                        </p>
+                        
+                        <!-- Tarjeta de Símbolo -->
+                        <div class="bg-gray-100 p-6 rounded-xl shadow-inner border-l-4 border-secondary">
+                            <h3 class="text-xl font-bold text-primary mb-2">Símbolo: Iustitia Dinámica</h3>
+                            <p class="text-gray-600 text-sm">Nuestra Iustitia es **activa y decidida**. La **Espada** simboliza la ejecución pronta de la ley, la **Balanza** la imparcialidad, y el **Marco Diamantado** nuestra precisión y alto valor en el servicio.</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Columna Derecha: Valores (Pilares del Litigio) -->
+                    <div class="lg:w-1/2">
+                        <span class="text-sm font-semibold uppercase text-secondary tracking-widest">FUNDAMENTOS</span>
+                        <h3 class="text-3xl font-bold text-primary mb-8">Nuestros Pilares del Litigio</h3>
+                        
+                        <div class="space-y-4">
+                            <div class="pillar-item">
+                                <i data-lucide="gem" class="w-6 h-6 text-primary mr-3 mt-1 flex-shrink-0"></i>
+                                <div>
+                                    <p class="font-bold text-primary">1. Calidad Innegociable</p>
+                                    <p class="text-gray-700 text-sm">Cada escrito y argumentación es revisado con un estándar de excelencia que supera las expectativas.</p>
+                                </div>
+                            </div>
+                            <div class="pillar-item">
+                                <i data-lucide="award" class="w-6 h-6 text-primary mr-3 mt-1 flex-shrink-0"></i>
+                                <div>
+                                    <p class="font-bold text-primary">2. Profesionalismo Ético & Transparencia Radical</p>
+                                    <p class="text-gray-700 text-sm">Actuación basada en la verdad. Si no hay solución, somos los primeros en comunicarlo con claridad y sin jerga legal.</p>
+                                </div>
+                            </div>
+                            <div class="pillar-item">
+                                <i data-lucide="hand-heart" class="w-6 h-6 text-primary mr-3 mt-1 flex-shrink-0"></i>
+                                <div>
+                                    <p class="font-bold text-primary">3. Atención Personalizada</p>
+                                    <p class="text-gray-700 text-sm">Cada cliente es el único. Canal directo de comunicación y reporte de estatus mensual.</p>
+                                </div>
+                            </div>
+                            <div class="pillar-item">
+                                <i data-lucide="target" class="w-6 h-6 text-primary mr-3 mt-1 flex-shrink-0"></i>
+                                <div>
+                                    <p class="font-bold text-primary">4. Compromiso 360°</p>
+                                    <p class="text-gray-700 text-sm">Dedicación total enfocada en el objetivo final del cliente, no solo en llevar un asunto más.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECCIÓN 4: NUESTRO EQUIPO (CONFIANZA Y MADUREZ) - COLORES DE TEXTO RESTAURADOS PARA VISIBILIDAD -->
+        <section id="equipo" class="py-16 md:py-24 bg-primary text-white">
+            <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+                <h2 class="text-4xl font-extrabold text-center mb-4 text-secondary">Los Pilares de la Firma</h2>
+                <p class="text-xl text-center text-gray-300 mb-12 max-w-3xl mx-auto">
+                    Conozca a nuestros Socios Fundadores. Abogados jóvenes con la madurez y la especialización necesaria para su caso.
+                </p>
+
+                <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-8">
+                    
+                    <!-- Socio 1: Jorge Alberto Rico Ramírez (Mercantil) -->
+                    <div class="text-center">
+                        <div class="attorney-img-placeholder mx-auto mb-4">
+                            <!-- Imagen de abogado local: j.a.rico.png -->
+                            <img src="j.a.rico.png" alt="Lic. Jorge Alberto Rico Ramírez" onerror="this.style.display='none'">
+                        </div>
+                        <!-- RESTAURADO: Título a Dorado (Secondary) para gran contraste -->
+                        <h3 class="text-lg font-bold text-secondary">Lic. Jorge A. Rico</h3>
+                        <!-- RESTAURADO: Título Secundario a Blanco -->
+                        <p class="text-sm text-white">Socio Fundador / Jefe Mercantil</p>
+                        <i data-lucide="briefcase-business" class="w-5 h-5 text-gold-light mt-2 mx-auto" title="Especialista en Mercantil"></i>
+                    </div>
+
+                    <!-- Socio 2: Rolando David Martínez Castro (Civil / Familiar) -->
+                    <div class="text-center">
+                        <div class="attorney-img-placeholder mx-auto mb-4">
+                            <!-- Imagen de abogado local: r.d.martínez.png -->
+                            <img src="r.d.martínez.png" alt="Lic. Rolando David Martínez Castro" onerror="this.style.display='none'">
+                        </div>
+                        <!-- RESTAURADO: Título a Dorado (Secondary) para gran contraste -->
+                        <h3 class="text-lg font-bold text-secondary">Lic. Rolando D. Martínez</h3>
+                        <!-- RESTAURADO: Título Secundario a Blanco -->
+                        <p class="text-sm text-white">Socio Fundador / Jefe Civil y Familiar</p>
+                        <i data-lucide="family" class="w-5 h-5 text-gold-light mt-2 mx-auto" title="Especialista en Civil y Familiar"></i>
+                    </div>
+
+                    <!-- Socia 3: Jessica Esmeralda Guerrero Negrete (Laboral - Trabajadores) -->
+                    <div class="text-center">
+                        <div class="attorney-img-placeholder mx-auto mb-4">
+                            <!-- Imagen de abogado local: j.e.guerrero.png -->
+                            <img src="j.e.guerrero.png" alt="Lic. Jessica Esmeralda Guerrero Negrete" onerror="this.style.display='none'">
+                        </div>
+                        <!-- RESTAURADO: Título a Dorado (Secondary) para gran contraste -->
+                        <h3 class="text-lg font-bold text-secondary">Lic. Jessica E. Guerrero</h3>
+                        <!-- RESTAURADO: Título Secundario a Blanco -->
+                        <p class="text-sm text-white">Socia Fundadora / Jefe Laboral (Trabajadores)</p>
+                        <i data-lucide="hard-hat" class="w-5 h-5 text-gold-light mt-2 mx-auto" title="Especialista en Laboral (Trabajadores)"></i>
+                    </div>
+
+                    <!-- Socia 4: Carmen Beatriz Merino Sandoval (Laboral - Patrones) -->
+                    <div class="text-center">
+                        <div class="attorney-img-placeholder mx-auto mb-4">
+                            <!-- Imagen de abogado local: c.b.merino.png -->
+                            <img src="c.b.merino.png" alt="Lic. Carmen Beatriz Merino Sandoval" onerror="this.style.display='none'">
+                        </div>
+                        <!-- RESTAURADO: Título a Dorado (Secondary) para gran contraste -->
+                        <h3 class="text-lg font-bold text-secondary">Lic. Carmen B. Merino</h3>
+                        <!-- RESTAURADO: Título Secundario a Blanco -->
+                        <p class="text-sm text-white">Socia Fundadora / Jefe Laboral (Patrones)</p>
+                        <i data-lucide="factory" class="w-5 h-5 text-gold-light mt-2 mx-auto" title="Especialista en Laboral (Patrones)"></i>
+                    </div>
+                    
+                    <!-- Socio 5: Jesús Osbaldo Badillo Medina (Penal) -->
+                    <div class="text-center">
+                        <div class="attorney-img-placeholder mx-auto mb-4">
+                            <!-- Imagen de abogado local: j.o.badillo.png -->
+                            <img src="j.o.badillo.png" alt="Lic. Jesús Osbaldo Badillo Medina" onerror="this.style.display='none'">
+                        </div>
+                        <!-- RESTAURADO: Título a Dorado (Secondary) para gran contraste -->
+                        <h3 class="text-lg font-bold text-secondary">Lic. Jesús O. Badillo</h3>
+                        <!-- RESTAURADO: Título Secundario a Blanco -->
+                        <p class="text-sm text-white">Socio Fundador / Jefe Penal (Alto Impacto)</p>
+                        <i data-lucide="scale" class="w-5 h-5 text-gold-light mt-2 mx-auto" title="Especialista en Penal"></i>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <!-- SECCIÓN 5: CONTACTO (ACCIÓN DECISIVA) -->
+        <section id="contacto" class="py-16 md:py-24 bg-gray-50">
+            <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="lg:flex lg:space-x-12">
+                    
+                    <!-- Columna Izquierda: Formulario de Cita -->
+                    <div class="lg:w-1/2 bg-white p-8 rounded-xl shadow-2xl border-t-4 border-secondary">
+                        <span class="text-sm font-semibold uppercase text-secondary tracking-widest">AGENDA SU REUNIÓN</span>
+                        <h2 class="text-3xl font-extrabold text-primary mb-6">Comience su Estrategia Legal Hoy</h2>
+                        <p class="text-gray-600 mb-8">
+                            **IMPORTANT E:** La cita de asesoría se agenda exclusivamente por **vía telefónica o correo electrónico**. Use este formulario para enviarnos su solicitud y la contactaremos para formalizar la cita, enviándole el Protocolo de Primera Cita.
+                        </p>
+                        
+                        <!-- Formulario de Contacto Sencillo -->
+                        <form id="contact-form" class="space-y-4">
+                            <div>
+                                <label for="nombre" class="block text-sm font-medium text-gray-700">Nombre Completo <span class="text-red-500">*</span></label>
+                                <input type="text" id="nombre" name="nombre" required class="mt-1 block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-secondary focus:border-secondary">
+                            </div>
+                            <div>
+                                <label for="email" class="block text-sm font-medium text-gray-700">Correo Electrónico (Fundamental) <span class="text-red-500">*</span></label>
+                                <input type="email" id="email" name="email" required class="mt-1 block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-secondary focus:border-secondary">
+                            </div>
+                            <div>
+                                <label for="telefono" class="block text-sm font-medium text-gray-700">Número de Teléfono (Celular Preferentemente) <span class="text-red-500">*</span></label>
+                                <input type="tel" id="telefono" name="telefono" required class="mt-1 block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-secondary focus:border-secondary">
+                            </div>
+                            <div>
+                                <label for="problema" class="block text-sm font-medium text-gray-700">Breve Resumen del Problema Legal (Máx. 2 líneas) <span class="text-red-500">*</span></label>
+                                <textarea id="problema" name="problema" rows="2" required class="mt-1 block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-secondary focus:border-secondary" placeholder="Ejemplo: Necesito divorciarme y solicitar la custodia."></textarea>
+                            </div>
+                            <div>
+                                <button type="submit" class="w-full btn-primary-gold px-4 py-3 rounded-lg flex items-center justify-center space-x-2">
+                                    <i data-lucide="send" class="w-5 h-5"></i>
+                                    <span>Enviar Solicitud</span>
+                                </button>
+                            </div>
+                            <div id="form-message" class="mt-4 text-center text-sm font-medium hidden"></div>
+                        </form>
+                    </div>
+                    
+                    <!-- Columna Derecha: Información de Contacto Directo -->
+                    <div class="lg:w-1/2 mt-12 lg:mt-0 p-8 bg-white rounded-xl shadow-2xl border-t-4 border-primary">
+                        <span class="text-sm font-semibold uppercase text-primary tracking-widest">CONTACTO DIRECTO</span>
+                        <h3 class="text-3xl font-extrabold text-primary mb-6">Información Clave</h3>
+                        
+                        <div class="space-y-6">
+                            <!-- Teléfonos -->
+                            <div>
+                                <div class="flex items-center text-primary mb-2">
+                                    <i data-lucide="phone" class="w-6 h-6 text-secondary mr-3"></i>
+                                    <p class="font-bold text-xl">Llamadas y Asesoría Directa</p>
+                                </div>
+                                <p class="text-gray-700">Horario: Lunes a Viernes, 9:00 a 19:00 hrs.</p>
+                                <ul class="text-gray-600 mt-2 space-y-1">
+                                    <li class="flex justify-between items-center border-b pb-1">
+                                        <span class="font-medium">Oficina General:</span>
+                                        <a href="tel:4791033505" class="text-primary hover:text-secondary">479-103-3505</a>
+                                    </li>
+                                    <li class="flex justify-between items-center border-b pb-1">
+                                        <span class="font-medium">Civil / Familiar:</span>
+                                        <a href="tel:4772719724" class="text-primary hover:text-secondary">477-271-9724</a>
+                                    </li>
+                                    <li class="flex justify-between items-center border-b pb-1">
+                                        <span class="font-medium">Mercantil / Penal:</span>
+                                        <a href="tel:4776604364" class="text-primary hover:text-secondary">477-660-4364</a>
+                                    </li>
+                                </ul>
+                            </div>
+                            
+                            <!-- Correo -->
+                            <div>
+                                <div class="flex items-center text-primary mb-2">
+                                    <i data-lucide="mail" class="w-6 h-6 text-secondary mr-3"></i>
+                                    <p class="font-bold text-xl">Correo Electrónico</p>
+                                </div>
+                                <p class="text-gray-600">Para agendar y solicitudes generales.</p>
+                                <p class="mt-1"><a href="mailto:jrsfirmalegaldelbajio@gmail.com" class="text-primary font-medium hover:text-secondary">jrsfirmalegaldelbajio@gmail.com</a></p>
+                            </div>
+                            
+                            <!-- Dirección -->
+                            <div>
+                                <div class="flex items-center text-primary mb-2">
+                                    <i data-lucide="map-pin" class="w-6 h-6 text-secondary mr-3"></i>
+                                    <p class="font-bold text-xl">Ubicación (León, Gto.)</p>
+                                </div>
+                                <p class="text-gray-600">Calle Brillante #605, Fracc. Guadalupe, C.P. 37200.</p>
+                                <p class="text-sm text-gray-500 mt-1">Casa color café moca con portón de herrería negro mate.</p>
+                            </div>
+                            
+                            <!-- Redes Sociales -->
+                            <div>
+                                <div class="flex items-center text-primary mb-2">
+                                    <i data-lucide="megaphone" class="w-6 h-6 text-secondary mr-3"></i>
+                                    <p class="font-bold text-xl">Síganos</p>
+                                </div>
+                                <div class="flex space-x-4">
+                                    <a href="#" class="text-primary hover:text-secondary transition-colors duration-200" title="Instagram">
+                                        <i data-lucide="instagram" class="w-6 h-6"></i>
+                                    </a>
+                                    <a href="#" class="text-primary hover:text-secondary transition-colors duration-200" title="TikTok">
+                                        <i data-lucide="messages-square" class="w-6 h-6"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- FOOTER - Profesional y Minimalista -->
+    <footer class="header-bg py-10">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8 text-white text-center">
+            
+            <!-- Logo y Lema en Footer (Ahora todo en blanco) -->
+            <div class="mb-6">
+                <p class="text-2xl font-extrabold text-white">
+                    FIRMA LEGAL DEL BAJÍO
+                </p>
+                <p class="text-sm text-gray-400 mt-1">El Pacto de Justicia.</p>
+            </div>
+
+            <!-- Navegación Rápida -->
+            <div class="flex justify-center space-x-6 text-sm mb-6">
+                <a href="#areas" class="text-gray-300 hover:text-secondary">Áreas Legales</a>
+                <a href="#filosofia" class="text-gray-300 hover:text-secondary">Filosofía</a>
+                <a href="#equipo" class="text-gray-300 hover:text-secondary">Equipo</a>
+                <a href="#contacto" class="text-gray-300 hover:text-secondary">Contacto</a>
+            </div>
+
+            <!-- Aviso Legal / Restricciones -->
+            <p class="text-xs text-gray-500 max-w-2xl mx-auto">
+                © <span id="current-year"></span> FIRMA LEGAL DEL BAJÍO. Todos los derechos reservados. Este sitio web es de carácter informativo. La información de asesorías, costos y porcentajes de éxito se proporciona únicamente durante la consulta personal con un abogado.
+            </p>
+        </div>
+    </footer>
+
+    <!-- Scripts del Botpress Chatbot -->
+    <script src="https://cdn.botpress.cloud/webchat/v3.4/inject.js"></script>
+    <script src="https://files.bpcontent.cloud/2025/11/29/18/20251129184009-O25WQ0BY.js" defer></script>
+
+    <!-- Scripts de Interacción y Efecto 3D -->
+    <script>
+        // Inicializar Lucide Icons
+        lucide.createIcons();
+
+        // ----------------------------------------------------
+        // 1. Lógica del Menú Móvil
+        // ----------------------------------------------------
+        const mobileMenuButton = document.getElementById('mobile-menu-button');
+        const mobileMenu = document.getElementById('mobile-menu');
+
+        function toggleMenu() {
+            mobileMenu.classList.toggle('hidden');
+            const icon = mobileMenuButton.querySelector('svg');
+            if (mobileMenu.classList.contains('hidden')) {
+                icon.setAttribute('data-lucide', 'menu');
+            } else {
+                icon.setAttribute('data-lucide', 'x');
+            }
+            lucide.createIcons(); // Vuelve a renderizar el icono
+        }
+
+        function closeMenu() {
+            if (!mobileMenu.classList.contains('hidden')) {
+                toggleMenu();
+            }
+        }
+
+        mobileMenuButton.addEventListener('click', toggleMenu);
+
+        // ----------------------------------------------------
+        // 2. Lógica del Scroll de la Barra de Navegación
+        // ----------------------------------------------------
+        const navbar = document.getElementById('navbar');
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 50) {
+                navbar.classList.add('py-3');
+                navbar.classList.remove('py-4');
+                navbar.classList.add('bg-primary/95'); // Semi-transparente en scroll
+            } else {
+                navbar.classList.remove('py-3');
+                navbar.classList.add('py-4');
+                navbar.classList.remove('bg-primary/95');
+            }
+        });
+
+        // ----------------------------------------------------
+        // 3. Lógica del Formulario (Simulado)
+        // ----------------------------------------------------
+        const contactForm = document.getElementById('contact-form');
+        const formMessage = document.getElementById('form-message');
+
+        contactForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            formMessage.classList.add('text-primary');
+            formMessage.classList.remove('text-red-500');
+            formMessage.classList.remove('hidden');
+            formMessage.innerHTML = `<i data-lucide="loader-circle" class="w-5 h-5 inline mr-2 animate-spin"></i> Enviando solicitud...`;
+            lucide.createIcons();
+
+            // Simulación de envío de 2 segundos
+            setTimeout(() => {
+                contactForm.reset();
+                formMessage.classList.remove('text-primary');
+                formMessage.classList.add('text-secondary');
+                formMessage.innerHTML = `<i data-lucide="check-circle" class="w-5 h-5 inline mr-2"></i> Solicitud enviada con éxito. En breve nos comunicaremos con usted para agendar la cita.`;
+                lucide.createIcons();
+            }, 2000);
+        });
+
+        // ----------------------------------------------------
+        // 4. Lógica de Three.js (Efecto Visual Impactante)
+        // Creamos una Balanza de Iustitia abstracta y giratoria
+        // ----------------------------------------------------
+        
+        let scene, camera, renderer, object, container, animationId;
+        const canvas = document.getElementById('three-canvas');
+        
+        // Función de inicialización de la escena 3D
+        function initThreeJS() {
+            container = document.querySelector('.hero-section');
+            if (!container) return; // Salir si el contenedor no existe
+
+            // 1. Escena
+            scene = new THREE.Scene();
+
+            // 2. Cámara (Perspectiva para profundidad)
+            camera = new THREE.PerspectiveCamera(75, canvas.clientWidth / canvas.clientHeight, 0.1, 1000);
+            camera.position.z = 5;
+
+            // 3. Renderer (WebGL)
+            renderer = new THREE.WebGLRenderer({ canvas: canvas, alpha: true, antialias: true });
+            renderer.setSize(canvas.clientWidth, canvas.clientHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
+
+            // 4. Objeto 3D (Simulación de la Balanza de Iustitia)
+            const geometry = new THREE.CylinderGeometry(0.1, 0.1, 4, 32); // Eje central (Espada/Balanza)
+            const material = new THREE.MeshPhongMaterial({ color: 0xFFD700, emissive: 0x555500, shininess: 100 });
+            
+            const rod = new THREE.Mesh(geometry, material);
+            rod.rotation.z = Math.PI / 2; // Rotar a horizontal
+            
+            // Creación de las "placas" de la balanza como cubos
+            const plateGeometry = new THREE.BoxGeometry(0.5, 0.5, 0.5);
+            const plateMaterial = new THREE.MeshPhongMaterial({ color: 0xFFD700, emissive: 0x555500, shininess: 50 });
+
+            const leftPlate = new THREE.Mesh(plateGeometry, plateMaterial);
+            leftPlate.position.set(-2, 0, 0);
+
+            const rightPlate = new THREE.Mesh(plateGeometry, plateMaterial);
+            rightPlate.position.set(2, 0, 0);
+
+            // Agrupar los objetos
+            object = new THREE.Group();
+            object.add(rod);
+            object.add(leftPlate);
+            object.add(rightPlate);
+            
+            scene.add(object);
+
+            // 5. Luces (para ver el objeto dorado)
+            const ambientLight = new THREE.AmbientLight(0x404040, 2); // Luz ambiental suave
+            scene.add(ambientLight);
+
+            // CORRECCIÓN: DirectionionalLight debe ser DirectionalLight
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 4); 
+            directionalLight.position.set(5, 5, 5).normalize();
+            scene.add(directionalLight);
+            
+            // Ajuste de escala para que se vea sutilmente grande
+            object.scale.set(0.5, 0.5, 0.5);
+            object.position.y = 0.5; // Mover ligeramente arriba
+
+            // Iniciar el bucle de animación
+            animateThreeJS();
+        }
+
+        // Bucle de animación
+        function animateThreeJS() {
+            animationId = requestAnimationFrame(animateThreeJS);
+
+            // Rotación sutil y perpetua
+            object.rotation.x += 0.0005;
+            object.rotation.y += 0.001;
+            
+            renderer.render(scene, camera);
+        }
+
+        // Manejar el redimensionamiento
+        function onWindowResize() {
+            if (camera && renderer && container) {
+                camera.aspect = container.clientWidth / container.clientHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(container.clientWidth, container.clientHeight);
+            }
+        }
+        
+        window.addEventListener('resize', onWindowResize);
+        
+        // Usamos window.onload para asegurar que Three.js se inicializa después del DOM
+        window.onload = function () {
+            // Establecer el año actual en el footer
+            document.getElementById('current-year').textContent = new Date().getFullYear();
+            
+            // Iniciar la animación 3D
+            initThreeJS();
+            onWindowResize(); // Asegurar el tamaño inicial correcto
+        }
+
+        // Detener animación si es necesario (ej: al salir de la vista)
+        // Aunque en este caso se mantiene siempre activo por su ubicación en el hero.
+
+    </script>
+</body>
+</html>
